@@ -5,15 +5,26 @@ async function main() {
   const express = require("express");
 
   const bot = new Telegraf(process.env.BOT_TOKEN);
+  const channelUsername = "@YourChannelUsername"; // Replace with your actual channel username
+
+  // Function to check if the user is a member of the channel
+  const checkMembership = async (ctx) => {
+    try {
+      const chatMember = await ctx.telegram.getChatMember(channelUsername, ctx.from.id);
+      return ['member', 'administrator', 'creator'].includes(chatMember.status);
+    } catch (error) {
+      console.error('Error checking membership:', error);
+      return false;
+    }
+  };
 
   bot.start(async (ctx) => {
     try {
       ctx.reply(
-        `Hi ${ctx.message.from.first_name},\n\nI can Download Files from Terabox.\n\nMade with ❤️ by @Shahil44\n\nSend any terabox link to download.`,
+        `Hi ${ctx.message.from.first_name},\n\nI can Download Files from Terabox.\n\nMade with ❤️ by @Shahil44\n\nBefore you can use the bot, please join our channel:`,
         Markup.inlineKeyboard([
-          Markup.button.url(" Channel", "https://t.me/bjsbotmaker"),
-          Markup.button.url("Report bug", "https://t.me/Teraboxdownloadbot"),
-        ]),
+          Markup.button.url("Join Channel", "https://t.me/bjsbotmaker"),
+        ])
       );
     } catch (e) {
       console.error(e);
@@ -22,16 +33,24 @@ async function main() {
 
   bot.on("message", async (ctx) => {
     if (ctx.message && ctx.message.text) {
+      // Check if user is a member of the channel
+      const isMember = await checkMembership(ctx);
+      
+      if (!isMember) {
+        return ctx.reply(
+          `Please join our channel first to use the bot.`,
+          Markup.inlineKeyboard([
+            Markup.button.url("Join Channel", "https://t.me/bjsbotmaker"),
+            Markup.button.callback("Joined ✅", "check_join")
+          ])
+        );
+      }
+
       const messageText = ctx.message.text;
       if (
         messageText.includes("terabox.com") ||
         messageText.includes("teraboxapp.com")
       ) {
-        //const parts = messageText.split("/");
-        //const linkID = parts[parts.length - 1];
-
-        // ctx.reply(linkID)
-
         const details = await getDetails(messageText);
         if (details && details.direct_link) {
           try {
@@ -47,8 +66,6 @@ async function main() {
       } else {
         ctx.reply("Please send a valid Terabox link.");
       }
-    } else {
-      //ctx.reply("No message text found.");
     }
   });
 
