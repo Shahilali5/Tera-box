@@ -5,7 +5,7 @@ async function main() {
   const express = require("express");
 
   const bot = new Telegraf(process.env.BOT_TOKEN);
-  const channelUsername = "@YourChannelUsername"; // Replace with your actual channel username
+  const channelUsername = "@bjsbotmaket"; // Replace with your actual channel username
 
   // Function to check if the user is a member of the channel
   const checkMembership = async (ctx) => {
